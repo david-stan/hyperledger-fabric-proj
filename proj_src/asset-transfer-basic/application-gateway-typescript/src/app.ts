@@ -76,16 +76,16 @@ async function main(): Promise<void> {
         await getAllAssets(contract);
 
         // Create a new asset on the ledger.
-        await createAsset(contract);
+        // await createAsset(contract);
 
-        // Update an existing asset asynchronously.
-        await transferAssetAsync(contract);
+        // // Update an existing asset asynchronously.
+        // await transferAssetAsync(contract);
 
-        // Get the asset details by assetID.
-        await readAssetByID(contract);
+        // // Get the asset details by assetID.
+        // await readAssetByID(contract);
 
-        // Update an asset which does not exist.
-        await updateNonExistentAsset(contract)
+        // // Update an asset which does not exist.
+        // await updateNonExistentAsset(contract)
     } finally {
         gateway.close();
         client.close();
@@ -136,7 +136,7 @@ async function initLedger(contract: Contract): Promise<void> {
 async function getAllAssets(contract: Contract): Promise<void> {
     console.log('\n--> Evaluate Transaction: GetAllAssets, function returns all the current assets on the ledger');
 
-    const resultBytes = await contract.evaluateTransaction('GetAllAssets');
+    const resultBytes = await contract.evaluateTransaction('ReadPersonAsset', 'p_0002');
 
     const resultJson = utf8Decoder.decode(resultBytes);
     const result = JSON.parse(resultJson);
