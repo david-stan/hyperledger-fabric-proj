@@ -43,21 +43,21 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 
 	personAssetList := []PersonAsset{
 		{
-			ID:      "0001",
+			ID:      "p_0001",
 			Name:    "Milomir",
 			Surname: "Maric",
 			Email:   "milomirmaric@gmail.com",
 			Credit:  1000.0,
 		},
 		{
-			ID:      "0002",
+			ID:      "p_0002",
 			Name:    "Mihajlo",
 			Surname: "Ulemek",
 			Email:   "mihajloulemek@gmail.com",
 			Credit:  500.0,
 		},
 		{
-			ID:      "0003",
+			ID:      "p_0003",
 			Name:    "Zeljko",
 			Surname: "Raznjatovic",
 			Email:   "zeljkozeljko@gmail.com",
@@ -67,7 +67,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 
 	carAssetList := []CarAsset{
 		{
-			ID:       "0001",
+			ID:       "c_0001",
 			Brand:    "Mazda",
 			Model:    "CX-5",
 			Year:     "2015",
@@ -85,7 +85,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 			},
 		},
 		{
-			ID:       "0002",
+			ID:       "c_0002",
 			Brand:    "Toyota",
 			Model:    "Corolla",
 			Year:     "2009",
@@ -99,7 +99,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 			},
 		},
 		{
-			ID:       "0003",
+			ID:       "c_0003",
 			Brand:    "Toyota",
 			Model:    "Celica",
 			Year:     "1993",
@@ -113,7 +113,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 			},
 		},
 		{
-			ID:       "0004",
+			ID:       "c_0004",
 			Brand:    "Mitsubishi",
 			Model:    "Pajero",
 			Year:     "1990",
@@ -127,7 +127,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 			},
 		},
 		{
-			ID:       "0005",
+			ID:       "c_0005",
 			Brand:    "Mitsubishi",
 			Model:    "Pajero",
 			Year:     "1990",
@@ -141,7 +141,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 			},
 		},
 		{
-			ID:       "0004",
+			ID:       "c_0006",
 			Brand:    "BMW",
 			Model:    "E30",
 			Year:     "1992",
