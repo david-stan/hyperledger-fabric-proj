@@ -3,6 +3,7 @@ package chaincode
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
@@ -59,7 +60,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 		{
 			ID:      "p_0003",
 			Name:    "Zeljko",
-			Surname: "Raznjatovic",
+			Surname: "Zeljkovic",
 			Email:   "zeljkozeljko@gmail.com",
 			Credit:  20000.0,
 		},
@@ -72,7 +73,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 			Model:    "CX-5",
 			Year:     "2015",
 			Colour:   "Cherry Red",
-			Owner_Id: "0001",
+			Owner_Id: "p_0001",
 			MalfunctionList: []MalfunctionAsset{
 				{
 					Desc:  "Breaks",
@@ -90,7 +91,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 			Model:    "Corolla",
 			Year:     "2009",
 			Colour:   "Mettalic Gray",
-			Owner_Id: "0001",
+			Owner_Id: "p_0001",
 			MalfunctionList: []MalfunctionAsset{
 				{
 					Desc:  "Loose timing belt",
@@ -104,7 +105,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 			Model:    "Celica",
 			Year:     "1993",
 			Colour:   "Red",
-			Owner_Id: "0002",
+			Owner_Id: "p_0002",
 			MalfunctionList: []MalfunctionAsset{
 				{
 					Desc:  "Low power",
@@ -118,7 +119,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 			Model:    "Pajero",
 			Year:     "1990",
 			Colour:   "Mettalic Blue",
-			Owner_Id: "0003",
+			Owner_Id: "p_0003",
 			MalfunctionList: []MalfunctionAsset{
 				{
 					Desc:  "Broken suspension",
@@ -132,7 +133,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 			Model:    "Pajero",
 			Year:     "1990",
 			Colour:   "Red",
-			Owner_Id: "0003",
+			Owner_Id: "p_0003",
 			MalfunctionList: []MalfunctionAsset{
 				{
 					Desc:  "Broken transmission",
@@ -146,7 +147,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 			Model:    "E30",
 			Year:     "1992",
 			Colour:   "Gray",
-			Owner_Id: "0003",
+			Owner_Id: "p_0003",
 			MalfunctionList: []MalfunctionAsset{
 				{
 					Desc:  "Flat tire",
@@ -212,7 +213,7 @@ func (s *SmartContract) ReadCarAsset(ctx contractapi.TransactionContextInterface
 		return nil, fmt.Errorf("failed to read car from world state: %v", err)
 	}
 	if carAssetJSON == nil {
-		return nil, fmt.Errorf("the person asset %s does not exist", carId)
+		return nil, fmt.Errorf("the car asset %s does not exist", carId)
 	}
 
 	var carAsset CarAsset
@@ -235,20 +236,57 @@ func (s *SmartContract) PersonAssetExists(ctx contractapi.TransactionContextInte
 }
 
 // UpdateAsset updates an existing asset in the world state with provided parameters.
-func (s *SmartContract) TransferOwnership(ctx contractapi.TransactionContextInterface, carId string, newOwnerId string) error {
+func (s *SmartContract) TransferOwnership(ctx contractapi.TransactionContextInterface, carId string, newOwnerId string, price string, repairs string) error {
 	carAsset, err := s.ReadCarAsset(ctx, carId)
 	if err != nil {
 		return err
 	}
 
-	exists, err := s.PersonAssetExists(ctx, newOwnerId)
+	personAsset, err := s.ReadPersonAsset(ctx, newOwnerId)
 	if err != nil {
 		return err
 	}
 
-	if !exists {
-		return fmt.Errorf("the person %s does not exist", newOwnerId)
+	carPrice, err := strconv.ParseFloat(price, 64)
+	if err != nil {
+		return err
 	}
+
+	payReps, err := strconv.ParseBool(repairs)
+	if err != nil {
+		return err
+	}
+
+	malfunctions := carAsset.MalfunctionList
+
+	if len(malfunctions) > 0 {
+		if !payReps {
+			return fmt.Errorf("the car has current repairs")
+		}
+		for _, malfunction := range malfunctions {
+			carPrice -= malfunction.Price
+		}
+	}
+
+	if carPrice < 0 {
+		return fmt.Errorf("price is negative")
+	}
+
+	if personAsset.Credit < carPrice {
+		return fmt.Errorf("buyer has insufficient funds")
+	}
+
+	sellerAsset, err := s.ReadPersonAsset(ctx, carAsset.Owner_Id)
+	if err != nil {
+		return err
+	}
+
+	if sellerAsset.ID == personAsset.ID {
+		return fmt.Errorf("buyer and seller can't be the same person")
+	}
+
+	sellerAsset.Credit += carPrice
+	personAsset.Credit -= carPrice
 
 	carAsset.Owner_Id = newOwnerId
 
@@ -257,19 +295,53 @@ func (s *SmartContract) TransferOwnership(ctx contractapi.TransactionContextInte
 		return err
 	}
 
-	return ctx.GetStub().PutState(carId, carAssetJSON)
+	err = ctx.GetStub().PutState(carAsset.ID, carAssetJSON)
+	if err != nil {
+		return fmt.Errorf("failed to put to world state. %v", err)
+	}
+
+	sellerAssetJSON, err := json.Marshal(sellerAsset)
+	if err != nil {
+		return err
+	}
+
+	err = ctx.GetStub().PutState(sellerAsset.ID, sellerAssetJSON)
+	if err != nil {
+		return fmt.Errorf("failed to put to world state. %v", err)
+	}
+
+	personAssetJSON, err := json.Marshal(personAsset)
+	if err != nil {
+		return err
+	}
+
+	err = ctx.GetStub().PutState(personAsset.ID, personAssetJSON)
+	if err != nil {
+		return fmt.Errorf("failed to put to world state. %v", err)
+	}
+
+	return nil
 }
 
 // UpdateAsset updates an existing asset in the world state with provided parameters.
-func (s *SmartContract) AddMulfunction(ctx contractapi.TransactionContextInterface, carId string, description string, price float64) error {
+func (s *SmartContract) AddMulfunction(ctx contractapi.TransactionContextInterface, carId string, description string, price string) error {
 	carAsset, err := s.ReadCarAsset(ctx, carId)
 	if err != nil {
 		return err
 	}
 
+	malPrice, err := strconv.ParseFloat(price, 64)
+	if err != nil {
+		return err
+	}
+
+	if malPrice <= 0 {
+		return fmt.Errorf("price can't be negative. %v", err)
+	}
+
 	malfunction := MalfunctionAsset{
 		Desc:  description,
-		Price: price,
+		Price: malPrice,
 	}
 
 	carAsset.MalfunctionList = append(carAsset.MalfunctionList, malfunction)

@@ -13,16 +13,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"path"
+	"time"
+
 	"github.com/hyperledger/fabric-gateway/pkg/client"
 	"github.com/hyperledger/fabric-gateway/pkg/identity"
 	gwproto "github.com/hyperledger/fabric-protos-go/gateway"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/status"
-	"io/ioutil"
-	"log"
-	"path"
-	"time"
 )
 
 const (
@@ -75,17 +76,17 @@ func main() {
 	fmt.Println("getAllAssets:")
 	getAllAssets(contract)
 
-	fmt.Println("createAsset:")
-	createAsset(contract)
+	// fmt.Println("createAsset:")
+	// createAsset(contract)
 
-	fmt.Println("readAssetByID:")
-	readAssetByID(contract)
+	// fmt.Println("readAssetByID:")
+	// readAssetByID(contract)
 
-	fmt.Println("transferAssetAsync:")
-	transferAssetAsync(contract)
+	// fmt.Println("transferAssetAsync:")
+	// transferAssetAsync(contract)
 
-	fmt.Println("exampleErrorHandling:")
-	exampleErrorHandling(contract)
+	// fmt.Println("exampleErrorHandling:")
+	// exampleErrorHandling(contract)
 
 	log.Println("============ application-golang ends ============")
 }
@@ -176,7 +177,7 @@ func initLedger(contract *client.Contract) {
 func getAllAssets(contract *client.Contract) {
 	fmt.Println("Evaluate Transaction: GetAllAssets, function returns all the current assets on the ledger")
 
-	evaluateResult, err := contract.EvaluateTransaction("GetAllAssets")
+	evaluateResult, err := contract.EvaluateTransaction("ReadPersonAsset", "p_0002")
 	if err != nil {
 		panic(fmt.Errorf("failed to evaluate transaction: %w", err))
 	}
