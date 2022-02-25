@@ -150,6 +150,8 @@ infoln "Installing chaincode on peer2.org3..."
 
 ## query whether the chaincode is installed
 queryInstalled 1
+queryInstalled 2
+queryInstalled 3
 
 ## approve the definition for org1
 approveForMyOrg 1
